@@ -18,7 +18,7 @@ class _DownloadState extends State<Download> {
         title: const Text(
           'Download',
           style: TextStyle(
-            fontSize: 25.0,
+            fontSize: 20.0,
             fontWeight: FontWeight.bold,
           ),
         ),

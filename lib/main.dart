@@ -1,78 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:mobil/screens/download.dart';
+import 'package:mobil/screens/sharelink.dart';
 import 'package:mobil/screens/upload.dart';
 
-void main() {
-  runApp(const MaterialApp(
-    title: 'Navigation Basics',
-    home: MyApp(),
-  ));
-}
+/// Flutter code sample for [NavigationBar].
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+void main() => runApp(const NavigationBarApp());
+
+class NavigationBarApp extends StatelessWidget {
+  const NavigationBarApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData(useMaterial3: true),
+      home: const NavigationExample(),
+    );
+  }
+}
+
+class NavigationExample extends StatefulWidget {
+  const NavigationExample({super.key});
+
+  @override
+  State<NavigationExample> createState() => _NavigationExampleState();
+}
+
+class _NavigationExampleState extends State<NavigationExample> {
+  int currentPageIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Fotolink',
-          style: TextStyle(
-            fontSize: 25.0,
-            fontWeight: FontWeight.bold,
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
+          setState(() {
+            currentPageIndex = index;
+          });
+        },
+        indicatorColor: Colors.blueAccent,
+        selectedIndex: currentPageIndex,
+        destinations: const <Widget>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.upload),
+            icon: Icon(Icons.upload),
+            label: 'Upload',
           ),
-        ),
-        backgroundColor: Colors.blue[500],
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-              child: Card(
-                  child: Container(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                const Text(
-                  'Welcome to Fotolink',
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20.0),
-                FilledButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(Colors.blue[500]),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Upload()),
-                    );
-                  },
-                  child: const Text('Share '),
-                ),
-                FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all(Colors.grey[500]),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Download()),
-                      );
-                    },
-                    child: const Text("Download"))
-              ],
-            ),
-          ))),
+          NavigationDestination(
+            icon: Icon(Icons.download),
+            label: 'Download',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.share),
+            label: 'Share Link',
+          ),
         ],
       ),
+      body: <Widget>[
+        /// Home page
+        const Center(
+          child: Upload(
+            key: Key('upload'),
+          ),
+        ),
+
+        /// Notifications page
+
+        const Center(
+            child: Download(
+          key: Key('download'),
+        )),
+
+        /// Messages page
+        ///
+        const Center(
+            child: ShareLink(
+          key: Key('download'),
+        )),
+      ][currentPageIndex],
     );
   }
 }
