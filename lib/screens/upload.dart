@@ -6,6 +6,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:mobil/main.dart';
+import 'package:mobil/model/image.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Upload extends StatefulWidget {
   const Upload({Key? key}) : super(key: key);
@@ -15,6 +19,7 @@ class Upload extends StatefulWidget {
 }
 
 class _UploadState extends State<Upload> {
+  final TextEditingController _linkerName = TextEditingController();
   List<XFile>? images = [];
   List<String> base64Image = [];
   final ImagePicker picker = ImagePicker();
@@ -117,7 +122,7 @@ class _UploadState extends State<Upload> {
             ),
             if (base64Image.isNotEmpty)
               Container(
-                height: 600,
+                height: 500,
                 child: ListView.builder(
                   scrollDirection: Axis.vertical,
                   itemCount: base64Image.length,
@@ -133,9 +138,20 @@ class _UploadState extends State<Upload> {
                 ),
               ),
             if (base64Image.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _linkerName,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Enter the link',
+                  ),
+                ),
+              ),
+            if (base64Image.isNotEmpty)
               ElevatedButton(
                 onPressed: () {
-                  createAlbum(base64Image)
+                  createImage(context, base64Image, _linkerName.text)
                       .then((value) => {
                             setState(() {
                               base64Image = [];
@@ -152,14 +168,52 @@ class _UploadState extends State<Upload> {
   }
 }
 
-Future<http.Response> createAlbum(List<String> titles) {
-  return http.post(
-    Uri.parse('http://localhost:3000/api/v1/image'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-    },
-    body: jsonEncode(<String, dynamic>{
-      'images': titles,
-    }),
-  );
+class Images {
+  final String? user_id;
+  final String? linker_name;
+  final List<String> images;
+
+  Images({this.user_id, required this.images, this.linker_name});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': user_id,
+      'images': images,
+      'linker_name': linker_name,
+    };
+  }
+}
+
+Future<http.Response> createImage(
+    BuildContext context, List<String> images, String linkerName) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+
+    final response = await http.post(
+      Uri.parse('http://localhost:3000/api/v1/image'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(Images(
+        user_id: userId,
+        images: images,
+        linker_name: linkerName,
+      )),
+    );
+
+    if (response.statusCode == 200) {
+      // Successful response
+      print('Success: ${response.body}');
+    } else {
+      // Handle error response
+      print('Error: ${response.statusCode}, ${response.body}');
+    }
+
+    return response;
+  } catch (e) {
+    // Handle exceptions
+    print('Error: $e');
+    throw e; // Rethrow the exception if needed
+  }
 }
